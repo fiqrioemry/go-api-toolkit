@@ -1,4 +1,3 @@
-// ==================== pagination/gin.go ====================
 package pagination
 
 import (
@@ -15,15 +14,6 @@ func SmartBind(c *gin.Context, params *DefaultQueryParams) error {
 	}
 	params.SetDefaults()
 	return nil
-}
-
-// SmartBindFlexible - binds flexible query params and auto-applies defaults + validation
-func SmartBindFlexible(c *gin.Context, params *FlexibleQueryParams) error {
-	if err := c.ShouldBindQuery(params); err != nil {
-		return fmt.Errorf("invalid query parameters: %w", err)
-	}
-	params.SetDefaults()
-	return params.Validate()
 }
 
 // BindAndSetDefaults - helper function to bind any struct and apply defaults

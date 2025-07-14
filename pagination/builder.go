@@ -1,10 +1,6 @@
-// ==================== pagination/builder.go ====================
 package pagination
 
-import (
-	"fmt"
-	"math"
-)
+import "math"
 
 // Build creates pagination from parameters with smart defaults
 func Build(page, limit, total int) *Pagination {
@@ -43,12 +39,6 @@ func Build(page, limit, total int) *Pagination {
 
 // Quick creates pagination with automatic defaults
 func Quick(params DefaultQueryParams, total int) *Pagination {
-	params.SetDefaults()
-	return Build(params.Page, params.Limit, total)
-}
-
-// QuickFlexible creates pagination from FlexibleQueryParams
-func QuickFlexible(params FlexibleQueryParams, total int) *Pagination {
 	params.SetDefaults()
 	return Build(params.Page, params.Limit, total)
 }
@@ -99,42 +89,7 @@ func (q *DefaultQueryParams) SetDefaults() {
 	}
 }
 
-// SetDefaults for FlexibleQueryParams
-func (q *FlexibleQueryParams) SetDefaults() {
-	if q.Page < 1 {
-		q.Page = 1
-	}
-	if q.Limit < 1 {
-		q.Limit = 10
-	}
-	if q.Limit > 100 {
-		q.Limit = 100
-	}
-	if q.SortBy == "" {
-		q.SortBy = "created_at"
-	}
-	if q.SortOrder == "" {
-		q.SortOrder = "desc"
-	}
-	if q.SortOrder != "asc" && q.SortOrder != "desc" {
-		q.SortOrder = "desc"
-	}
-}
-
-// Validate checks business logic constraints
-func (q *FlexibleQueryParams) Validate() error {
-	if q.MinPrice != nil && q.MaxPrice != nil && *q.MinPrice > *q.MaxPrice {
-		return fmt.Errorf("min price cannot be greater than max price")
-	}
-	return nil
-}
-
 // GetOffset calculates offset for database queries
 func (q *DefaultQueryParams) GetOffset() int {
-	return (q.Page - 1) * q.Limit
-}
-
-// GetOffset for FlexibleQueryParams
-func (q *FlexibleQueryParams) GetOffset() int {
 	return (q.Page - 1) * q.Limit
 }
