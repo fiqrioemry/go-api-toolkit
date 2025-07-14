@@ -23,10 +23,7 @@ func Build(page, limit, total int) *Pagination {
 		totalPages = 1
 	}
 
-	offset := (page - 1) * limit
-	if offset < 0 {
-		offset = 0
-	}
+	offset := max((page-1)*limit, 0)
 
 	return &Pagination{
 		Page:       page,
