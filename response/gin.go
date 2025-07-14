@@ -93,3 +93,27 @@ func ForbiddenMsg(c *gin.Context, message string) {
 	err := NewForbidden(message)
 	Error(c, err)
 }
+
+// OKWithPagination sends success response with pagination
+func OKWithPagination(c *gin.Context, message string, data any, pagination any) {
+	writer := &GinJSONWriter{ctx: c}
+	globalHandler.OKWithPagination(writer, c, message, data, pagination)
+}
+
+// OKWithPaginationAndPermissions sends response with pagination and permissions
+func OKWithPaginationAndPermissions(c *gin.Context, message string, data any, pagination any, permissions map[string]bool) {
+	writer := &GinJSONWriter{ctx: c}
+	globalHandler.OKWithPaginationAndPermissions(writer, c, message, data, pagination, permissions)
+}
+
+// PaginatedResponse creates paginated response (convenience function)
+func PaginatedResponse(c *gin.Context, message string, data any, page, limit, total int) {
+	pagination := map[string]any{
+		"page":       page,
+		"limit":      limit,
+		"totalItems": total,
+		"totalPages": (total + limit - 1) / limit,
+		"offset":     (page - 1) * limit,
+	}
+	OKWithPagination(c, message, data, pagination)
+}
