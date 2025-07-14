@@ -1,4 +1,4 @@
-// Error constructors
+// ==================== response/errors.go ====================
 package response
 
 import "net/http"
@@ -101,4 +101,33 @@ func NewExternalServiceError(message string, err error) *AppError {
 		HTTPStatus: http.StatusInternalServerError,
 		Err:        err,
 	}
+}
+
+// Simple error constructors that return error interface
+func BadRequest(message string) error {
+	return NewBadRequest(message)
+}
+
+func NotFound(message string) error {
+	return NewNotFound(message)
+}
+
+func Unauthorized(message string) error {
+	return NewUnauthorized(message)
+}
+
+func Forbidden(message string) error {
+	return NewForbidden(message)
+}
+
+func Conflict(message string) error {
+	return NewConflict(message)
+}
+
+func InternalServerError(message string, err error) error {
+	return NewInternalServerError(message, err)
+}
+
+func DatabaseError(message string, err error) error {
+	return NewDatabaseError(message, err)
 }

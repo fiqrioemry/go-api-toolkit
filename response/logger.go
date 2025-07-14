@@ -1,4 +1,3 @@
-// ==================== response/logger.go ====================
 package response
 
 // LogLevel represents log levels
@@ -32,3 +31,6 @@ func (n *NoOpLogger) Debug(msg string, fields ...LogField) {}
 func (n *NoOpLogger) Info(msg string, fields ...LogField)  {}
 func (n *NoOpLogger) Warn(msg string, fields ...LogField)  {}
 func (n *NoOpLogger) Error(msg string, fields ...LogField) {}
+
+// ContextExtractor defines how to extract context from request
+type ContextExtractor func(req any) *Context

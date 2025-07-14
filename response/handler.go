@@ -154,14 +154,14 @@ func (h *Handler) Created(w JSONWriter, req any, message string, data any) {
 }
 
 // OKWithPagination sends 200 OK response with pagination
-func (h *Handler) OKWithPagination(w JSONWriter, req any, message string, data any, pagination *Pagination) {
+func (h *Handler) OKWithPagination(w JSONWriter, req any, message string, data any, pagination any) {
 	h.SuccessWithMeta(w, req, http.StatusOK, message, data, &Meta{
 		Pagination: pagination,
 	})
 }
 
 // OKWithPaginationAndPermissions sends 200 OK response with pagination and permissions
-func (h *Handler) OKWithPaginationAndPermissions(w JSONWriter, req any, message string, data any, pagination *Pagination, permissions map[string]bool) {
+func (h *Handler) OKWithPaginationAndPermissions(w JSONWriter, req any, message string, data any, pagination any, permissions map[string]bool) {
 	h.SuccessWithMeta(w, req, http.StatusOK, message, data, &Meta{
 		Pagination:  pagination,
 		Permissions: permissions,

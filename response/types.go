@@ -1,4 +1,3 @@
-// ==================== response/types.go ====================
 package response
 
 import (
@@ -70,16 +69,18 @@ type SuccessResponse struct {
 
 // Meta represents metadata for responses
 type Meta struct {
-	Pagination  *Pagination     `json:"pagination,omitempty"`
+	Pagination  any             `json:"pagination,omitempty"` // Interface{} to accept any pagination type
 	Permissions map[string]bool `json:"permissions,omitempty"`
 	Flags       map[string]bool `json:"flags,omitempty"`
 }
 
-// Pagination represents pagination information
-type Pagination struct {
-	Page       int `json:"page"`
-	Limit      int `json:"limit"`
-	Total      int `json:"totalItems"`
-	TotalPages int `json:"totalPages"`
-	Offset     int `json:"offset"`
+// Context represents request context for logging
+type Context struct {
+	Path      string
+	Method    string
+	ClientIP  string
+	UserAgent string
+	UserID    string
+	TraceID   string
+	Headers   map[string]string
 }
