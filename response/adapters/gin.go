@@ -1,0 +1,2 @@
+// Gin adapter
+package adapters

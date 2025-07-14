@@ -1,0 +1,2 @@
+// Logger interface
+package response

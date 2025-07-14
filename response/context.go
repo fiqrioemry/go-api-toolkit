@@ -1,0 +1,2 @@
+// Context types
+package response
