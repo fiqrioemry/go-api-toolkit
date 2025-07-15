@@ -18,7 +18,7 @@ func SmartBind(c *gin.Context, params *DefaultQueryParams) error {
 
 // BindAndSetDefaults - helper function to bind any struct and apply defaults
 // Works with existing DTO structs
-func BindAndSetDefaults(c *gin.Context, req interface{}) error {
+func BindAndSetDefaults(c *gin.Context, req any) error {
 	if err := c.ShouldBindQuery(req); err != nil {
 		return fmt.Errorf("invalid query parameters: %w", err)
 	}
