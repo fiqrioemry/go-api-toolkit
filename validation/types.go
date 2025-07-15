@@ -23,7 +23,7 @@ type Config struct {
 
 // InitConfig for initialization
 type InitConfig struct {
-	Logger           Logger            `json:"-"`
+	Logger           any               `json:"-"`
 	CustomMessages   bool              `json:"custom_messages"`
 	StopOnFirstError bool              `json:"stop_on_first"`
 	Locale           string            `json:"locale"`
@@ -33,7 +33,7 @@ type InitConfig struct {
 
 // ValidationConfig for request-level options
 type ValidationConfig struct {
-	Context   map[string]interface{}
+	Context   map[string]any
 	ForceJSON bool
 	ForceForm bool
 	Locale    string
@@ -45,10 +45,10 @@ type ValidationOption func(*ValidationConfig)
 
 // ValidationError represents validation failure details
 type ValidationError struct {
-	Field   string      `json:"field"`
-	Value   interface{} `json:"value,omitempty"`
-	Tag     string      `json:"tag"`
-	Message string      `json:"message"`
+	Field   string `json:"field"`
+	Value   any    `json:"value,omitempty"`
+	Tag     string `json:"tag"`
+	Message string `json:"message"`
 }
 
 // ValidationErrors collection of validation errors
@@ -56,9 +56,41 @@ type ValidationErrors struct {
 	Errors []ValidationError `json:"errors"`
 }
 
+// applyConfigDefaults applies defaults and adapts logger automatically
+func applyConfigDefaults(config InitConfig) Config {
+	result := getDefaultConfig()
+
+	// 🚀 AUTO-ADAPT LOGGER (this is where the magic happens)
+	result.Logger = adaptLogger(config.Logger)
+
+	// Apply other config values if provided
+	if config.Locale != "" {
+		result.Locale = config.Locale
+		// Update error messages for the locale
+		result.ErrorMessages = getDefaultMessages(config.Locale)
+	}
+
+	if config.CustomRules != nil {
+		result.CustomRules = config.CustomRules
+	}
+
+	if config.ErrorMessages != nil {
+		// Merge custom messages with defaults
+		for key, value := range config.ErrorMessages {
+			result.ErrorMessages[key] = value
+		}
+	}
+
+	// Apply boolean settings
+	result.CustomMessages = config.CustomMessages
+	result.StopOnFirstError = config.StopOnFirstError
+
+	return result
+}
+
 // Rule interface for custom validation rules
 type Rule interface {
-	Validate(value interface{}, params string, context map[string]interface{}) error
+	Validate(value any, params string, context map[string]any) error
 	GetMessage() string
 }
 
@@ -83,29 +115,13 @@ const (
 	BindingMultipart
 )
 
-// Logger interface (reuse from response package)
-type Logger interface {
-	Error(msg string, fields ...interface{})
-	Warn(msg string, fields ...interface{})
-	Info(msg string, fields ...interface{})
-	Debug(msg string, fields ...interface{})
-}
-
-// NoOpLogger implements Logger interface with no-op methods
-type NoOpLogger struct{}
-
-func (l *NoOpLogger) Error(msg string, fields ...interface{}) {}
-func (l *NoOpLogger) Warn(msg string, fields ...interface{})  {}
-func (l *NoOpLogger) Info(msg string, fields ...interface{})  {}
-func (l *NoOpLogger) Debug(msg string, fields ...interface{}) {}
-
 // JSONWriter interface for framework-agnostic response writing
 type JSONWriter interface {
-	WriteJSON(statusCode int, data interface{}) error
+	WriteJSON(statusCode int, data any) error
 	GetStatusCode() int
 }
 
-// Default configuration
+// getDefaultConfig returns default configuration
 func getDefaultConfig() Config {
 	return Config{
 		Logger:           &NoOpLogger{},
@@ -120,7 +136,7 @@ func getDefaultConfig() Config {
 // Build validation config from options
 func buildValidationConfig(opts ...ValidationOption) ValidationConfig {
 	config := ValidationConfig{
-		Context: make(map[string]interface{}),
+		Context: make(map[string]any),
 		Locale:  "en",
 		Rules:   make(map[string]Rule),
 	}
@@ -133,7 +149,7 @@ func buildValidationConfig(opts ...ValidationOption) ValidationConfig {
 }
 
 // Validation options
-func WithContext(ctx map[string]interface{}) ValidationOption {
+func WithContext(ctx map[string]any) ValidationOption {
 	return func(config *ValidationConfig) {
 		config.Context = ctx
 	}

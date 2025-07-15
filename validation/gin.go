@@ -1,11 +1,12 @@
+// File: validation/gin.go - Updated to match your response package pattern
+
 package validation
 
 import (
 	"strings"
 
+	"github.com/fiqrioemry/go-api-toolkit/response"
 	"github.com/gin-gonic/gin"
-	// Import your response package here
-	// "github.com/fiqrioemry/go-api-toolkit/response"
 )
 
 // InitGin initializes validation for Gin framework
@@ -15,38 +16,13 @@ func InitGin(configs ...InitConfig) {
 		config = configs[0]
 	}
 
-	// Apply defaults
-	if config.Logger == nil {
-		config.Logger = &NoOpLogger{}
-	}
-	if config.Locale == "" {
-		config.Locale = "en"
-	}
-	if config.CustomRules == nil {
-		config.CustomRules = make(map[string]Rule)
-	}
-	if config.ErrorMessages == nil {
-		config.ErrorMessages = getDefaultMessages(config.Locale)
-	}
-
-	// Create handler config
-	handlerConfig := Config{
-		Logger:           config.Logger,
-		CustomMessages:   config.CustomMessages,
-		StopOnFirstError: config.StopOnFirstError,
-		Locale:           config.Locale,
-		CustomRules:      config.CustomRules,
-		ErrorMessages:    config.ErrorMessages,
-	}
-
-	// Initialize global handler
+	handlerConfig := applyConfigDefaults(config)
 	globalHandler = NewHandler(handlerConfig)
 }
 
 // BindAndValidate binds request data and validates struct
-func BindAndValidate(c *gin.Context, obj interface{}, opts ...ValidationOption) error {
+func BindAndValidate(c *gin.Context, obj any, opts ...ValidationOption) error {
 	if globalHandler == nil {
-		// Auto-initialize with defaults if not initialized
 		InitGin()
 	}
 
@@ -60,8 +36,8 @@ func BindAndValidate(c *gin.Context, obj interface{}, opts ...ValidationOption) 
 			"method", c.Request.Method,
 		)
 
-		// Return as BadRequest error (assuming response package integration)
-		return createBindingError(err.Error())
+		// 🚀 USE YOUR RESPONSE PACKAGE PATTERN
+		return response.BadRequest("Invalid request format: " + err.Error())
 	}
 
 	// Validate the bound struct
@@ -72,7 +48,7 @@ func BindAndValidate(c *gin.Context, obj interface{}, opts ...ValidationOption) 
 				"path", c.FullPath(),
 			)
 
-			// Return as ValidationError (assuming response package integration)
+			// 🚀 CREATE VALIDATION ERROR USING YOUR PATTERN
 			return createValidationError(validationErrs)
 		}
 
@@ -81,19 +57,25 @@ func BindAndValidate(c *gin.Context, obj interface{}, opts ...ValidationOption) 
 			"path", c.FullPath(),
 		)
 
-		return createValidationError(ValidationErrors{
-			Errors: []ValidationError{{
-				Field:   "unknown",
-				Message: err.Error(),
-			}},
-		})
+		return response.InternalServerError("Validation error", err)
 	}
 
 	return nil
 }
 
+// 🚀 HELPER FUNCTION TO CREATE VALIDATION ERROR USING YOUR PATTERN
+func createValidationError(validationErrs ValidationErrors) error {
+	// Create BadRequest with validation failed message
+	err := response.NewBadRequest("Validation failed")
+
+	// Add validation errors as context (same pattern as your utils)
+	err.WithContext("errors", validationErrs.ToMap())
+
+	return err
+}
+
 // smartBind performs smart binding based on request characteristics
-func smartBind(c *gin.Context, obj interface{}, config ValidationConfig) error {
+func smartBind(c *gin.Context, obj any, config ValidationConfig) error {
 	// Force specific binding if requested
 	if config.ForceJSON {
 		return c.ShouldBindJSON(obj)
@@ -115,10 +97,8 @@ func smartBind(c *gin.Context, obj interface{}, config ValidationConfig) error {
 	case strings.Contains(contentType, "application/x-www-form-urlencoded"):
 		return c.ShouldBind(obj)
 	case method == "GET" || method == "DELETE":
-		// For GET/DELETE, prefer query parameters
 		return c.ShouldBindQuery(obj)
 	default:
-		// Fallback: try JSON for POST/PUT/PATCH, query for others
 		if method == "POST" || method == "PUT" || method == "PATCH" {
 			return c.ShouldBindJSON(obj)
 		}
@@ -127,7 +107,7 @@ func smartBind(c *gin.Context, obj interface{}, config ValidationConfig) error {
 }
 
 // bindForm binds form data (query params or form-data)
-func bindForm(c *gin.Context, obj interface{}) error {
+func bindForm(c *gin.Context, obj any) error {
 	contentType := c.GetHeader("Content-Type")
 
 	if strings.Contains(contentType, "multipart/form-data") ||
@@ -135,51 +115,11 @@ func bindForm(c *gin.Context, obj interface{}) error {
 		return c.ShouldBind(obj)
 	}
 
-	// Default to query parameters
 	return c.ShouldBindQuery(obj)
 }
 
-// Gin-specific writer adapter
-type ginJSONWriter struct {
-	ctx        *gin.Context
-	statusCode int
-}
-
-func (w *ginJSONWriter) WriteJSON(statusCode int, data interface{}) error {
-	w.statusCode = statusCode
-	w.ctx.JSON(statusCode, data)
-	return nil
-}
-
-func (w *ginJSONWriter) GetStatusCode() int {
-	return w.statusCode
-}
-
-// Helper functions to create errors (these would integrate with your response package)
-func createBindingError(message string) error {
-	// This would use your response package's BadRequest function
-	// return response.BadRequest("Invalid request format: " + message)
-
-	// Placeholder implementation
-	return ValidationErrors{
-		Errors: []ValidationError{{
-			Field:   "request",
-			Message: "Invalid request format: " + message,
-			Tag:     "binding",
-		}},
-	}
-}
-
-func createValidationError(validationErrs ValidationErrors) error {
-	// This would use your response package's ValidationError function
-	// return response.ValidationError("Validation failed", validationErrs.ToMap())
-
-	// Return the validation errors as-is for now
-	return validationErrs
-}
-
 // Quick validation function for simple cases
-func Validate(obj interface{}, opts ...ValidationOption) error {
+func Validate(obj any, opts ...ValidationOption) error {
 	if globalHandler == nil {
 		InitGin()
 	}
@@ -189,6 +129,33 @@ func Validate(obj interface{}, opts ...ValidationOption) error {
 }
 
 // ValidateWithContext validates with context
-func ValidateWithContext(obj interface{}, context map[string]interface{}) error {
+func ValidateWithContext(obj any, context map[string]any) error {
 	return Validate(obj, WithContext(context))
+}
+
+// BindAndValidateJSON as drop-in replacement for utils.BindAndValidateJSON
+func BindAndValidateJSON[T any](c *gin.Context, req *T) bool {
+	if err := BindAndValidate(c, req, ForceJSON()); err != nil {
+		response.Error(c, err)
+		return false
+	}
+	return true
+}
+
+// BindAndValidateForm as drop-in replacement for utils.BindAndValidateForm
+func BindAndValidateForm[T any](c *gin.Context, req *T) bool {
+	if err := BindAndValidate(c, req, ForceForm()); err != nil {
+		response.Error(c, err)
+		return false
+	}
+	return true
+}
+
+// BindAndValidateQuery for query parameters
+func BindAndValidateQuery[T any](c *gin.Context, req *T) bool {
+	if err := BindAndValidate(c, req, ForceQuery()); err != nil {
+		response.Error(c, err)
+		return false
+	}
+	return true
 }
