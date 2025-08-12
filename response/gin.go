@@ -100,6 +100,12 @@ func OKWithPagination(c *gin.Context, message string, data any, pagination any) 
 	globalHandler.OKWithPagination(writer, c, message, data, pagination)
 }
 
+// OKWithPermissions sends response with pagination and permissions
+func OKWithPermissions(c *gin.Context, message string, data any, permissions map[string]bool) {
+	writer := &GinJSONWriter{ctx: c}
+	globalHandler.OKWithPermissions(writer, c, message, data, permissions)
+}
+
 // OKWithPaginationAndPermissions sends response with pagination and permissions
 func OKWithPaginationAndPermissions(c *gin.Context, message string, data any, pagination any, permissions map[string]bool) {
 	writer := &GinJSONWriter{ctx: c}
