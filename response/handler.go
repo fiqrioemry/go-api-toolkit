@@ -160,6 +160,13 @@ func (h *Handler) OKWithPagination(w JSONWriter, req any, message string, data a
 	})
 }
 
+// OKWithPermissions sends 200 ok response with permissions
+func (h *Handler) OKWithPermissions(w JSONWriter, req any, message string, data any, permissions map[string]bool) {
+	h.SuccessWithMeta(w, req, http.StatusOK, message, data, &Meta{
+		Permissions: permissions,
+	})
+}
+
 // OKWithPaginationAndPermissions sends 200 OK response with pagination and permissions
 func (h *Handler) OKWithPaginationAndPermissions(w JSONWriter, req any, message string, data any, pagination any, permissions map[string]bool) {
 	h.SuccessWithMeta(w, req, http.StatusOK, message, data, &Meta{
