@@ -14,6 +14,7 @@ type Pagination struct {
 type DefaultQueryParams struct {
 	Page      int    `form:"page" json:"page" binding:"omitempty"`
 	Limit     int    `form:"limit" json:"limit" binding:"omitempty"`
-	SortBy    string `form:"sortBy" json:"sortBy"`
-	SortOrder string `form:"sortOrder" json:"sortOrder"`
+	Search    string `form:"search" json:"search" binding:"omitempty"`
+	SortBy    string `form:"sortBy" json:"sortBy" binding:"omitempty"`
+	SortOrder string `form:"sortOrder" json:"sortOrder" binding:"omitempty"`
 }
